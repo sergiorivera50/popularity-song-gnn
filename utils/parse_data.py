@@ -270,7 +270,7 @@ class ELT:
         print(self.eeg_files)
         for eeg_file in self.eeg_files:
             rec_idx = eeg_file.split("_")[1].split('.')[0]
-            fe = FeatureExtractor("data/songs_lists/" + str(rec_idx) + "_video_list.txt", "data/features.csv")
+            fe = FeatureExtractor("data/songs_lists/" + str(rec_idx) + "_video_list.txt", "../data/features.csv")
             tmp_features = fe.extract_record_features()
             y.append(tmp_features[:, 0])
             features.append(tmp_features[:, 1:])
