@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 import torch.nn as nn
 from typing import Optional
@@ -112,3 +113,26 @@ class TemporalAttentionLayer(nn.Module):
         out = self.merger(out, src_node_feat)
 
         return out, weights
+
+
+class TimeEncoder(nn.Module):
+    """
+    Time encoding method proposed by TGAT.
+    https://doi.org/10.48550/arXiv.2002.07962
+    """
+    def __init__(self, dim):
+        super().__init__()
+
+        self.dim = dim
+        self.w = nn.Linear(1, dim)
+        w_param = torch.from_numpy(1 / 10 ** np.linspace(0, 9, dim))
+        self.w.weight = nn.Parameter(w_param.float().reshape(dim, -1))
+        self.w.bias = nn.Parameter(torch.zeros(dim).float())
+
+    def forward(self, t):
+        """
+        :param t: Tensor of shape (batch_size, seq_length)
+        :return: Output tensor of shape (batch_size, seq_length, dim)
+        """
+        t = t.unsqueeze(dim=2)  # New shape -> (batch_size, seq_length, 1) to apply linear transformation
+        return torch.cos(self.w(t))
