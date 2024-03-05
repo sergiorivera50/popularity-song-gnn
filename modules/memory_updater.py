@@ -1,15 +1,18 @@
 from torch import nn
 import torch
+from abc import ABC, abstractmethod
 
 
-class MemoryUpdater(nn.Module):
+class MemoryUpdater(nn.Module, ABC):
     """
     Abstract base class for memory updaters. Defines the interface for updating memory.
+    This class cannot be instantiated on its own and requires subclassing.
     """
 
+    @abstractmethod
     def update_memory(self, unique_node_ids, unique_messages, timestamps):
         """
-        Updates the memory based on unique node IDs, messages, and timestamps.
+        Abstract method to update the memory based on unique node IDs, messages, and timestamps.
 
         :param unique_node_ids: Node IDs for which to update memory.
         :param unique_messages: Messages corresponding to each node ID.
@@ -21,6 +24,7 @@ class MemoryUpdater(nn.Module):
 class SequenceMemoryUpdater(MemoryUpdater):
     """
     A memory updater that processes sequences of messages using a neural network layer.
+    Implements the MemoryUpdater interface.
     """
 
     def __init__(self, memory, message_dim, memory_dim, device):
@@ -46,17 +50,7 @@ class SequenceMemoryUpdater(MemoryUpdater):
         :param unique_messages: Messages corresponding to each node ID.
         :param timestamps: Timestamps at which each message is received.
         """
-        if len(unique_node_ids) <= 0:
-            return
-
-        assert (self.memory.get_last_update(node_idxs=unique_node_ids) <= timestamps).all().item(), \
-            "Trying to update memory to a time in the past."
-
-        memory = self.memory.get_memory(node_idxs=unique_node_ids)
-        self.memory.last_update[unique_node_ids] = timestamps
-
-        updated_memory = self.memory_updater(input=unique_messages, hx=memory)
-        self.memory.set_memory(node_idxs=unique_node_ids, values=updated_memory)
+        raise NotImplementedError("Subclasses should implement this portion")
 
     def get_updated_memory(self, unique_node_ids, unique_messages, timestamps):
         """
@@ -98,9 +92,14 @@ class GRUMemoryUpdater(SequenceMemoryUpdater):
         :param memory_dim: The dimensionality of the memory vector.
         :param device: The computation device ('cpu' or 'cuda').
         """
-        super(GRUMemoryUpdater, self).__init__(memory=memory, message_dim=message_dim, memory_dim=memory_dim,
-                                               device=device)
+        super().__init__(memory=memory, message_dim=message_dim, memory_dim=memory_dim, device=device)
         self.memory_updater = nn.GRUCell(input_size=message_dim, hidden_size=memory_dim)
+
+    def update_memory(self, unique_node_ids, unique_messages, timestamps):
+        """
+        Specific implementation of update_memory for the GRU memory updater.
+        """
+        super().update_memory(unique_node_ids, unique_messages, timestamps)
 
 
 class RNNMemoryUpdater(SequenceMemoryUpdater):
@@ -117,9 +116,14 @@ class RNNMemoryUpdater(SequenceMemoryUpdater):
         :param memory_dim: The dimensionality of the memory vector.
         :param device: The computation device ('cpu' or 'cuda').
         """
-        super(RNNMemoryUpdater, self).__init__(memory=memory, message_dim=message_dim, memory_dim=memory_dim,
-                                               device=device)
+        super().__init__(memory=memory, message_dim=message_dim, memory_dim=memory_dim, device=device)
         self.memory_updater = nn.RNNCell(input_size=message_dim, hidden_size=memory_dim)
+
+    def update_memory(self, unique_node_ids, unique_messages, timestamps):
+        """
+        Specific implementation of update_memory for the RNN memory updater.
+        """
+        super().update_memory(unique_node_ids, unique_messages, timestamps)
 
 
 def get_memory_updater(module_type, memory, message_dim, memory_dim, device):
@@ -141,4 +145,4 @@ def get_memory_updater(module_type, memory, message_dim, memory_dim, device):
         case "rnn":
             return RNNMemoryUpdater(memory=memory, message_dim=message_dim, memory_dim=memory_dim, device=device)
         case _:
-            raise NotImplemented(f"Memory updater '{module_type}' not implemented.")
+            raise NotImplementedError(f"Memory updater '{module_type}' not implemented.")
