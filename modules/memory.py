@@ -10,7 +10,7 @@ class Memory(nn.Module, ABC):
     This class defines a structure for storing and updating memory nodes with messages.
     """
 
-    def __init__(self, n_nodes, memory_dimension, input_dimension, message_dimension=None,
+    def __init__(self, n_nodes, memory_dim, input_dim, message_dim=None,
                  device="cpu", combination_method='sum'):
         """
         :param n_nodes: Number of nodes in the memory.
@@ -22,9 +22,9 @@ class Memory(nn.Module, ABC):
         """
         super().__init__()
         self.n_nodes = n_nodes
-        self.memory_dimension = memory_dimension
-        self.input_dimension = input_dimension
-        self.message_dimension = message_dimension if message_dimension is not None else input_dimension
+        self.memory_dim = memory_dim
+        self.input_dim = input_dim
+        self.message_dim = message_dim if message_dim is not None else input_dim
         self.device = device
         self.combination_method = combination_method
 
@@ -36,7 +36,7 @@ class Memory(nn.Module, ABC):
         :param Initializes the memory and last update time to all zeroes.
         :param This method is intended to be called at the start of each epoch to reset the memory.
         """
-        self.memory = nn.Parameter(torch.zeros(size=(self.n_nodes, self.memory_dimension), device=self.device),
+        self.memory = nn.Parameter(torch.zeros(size=(self.n_nodes, self.memory_dim), device=self.device),
                                    requires_grad=False)
         self.last_update = nn.Parameter(torch.zeros(size=(self.n_nodes,), device=self.device),
                                         requires_grad=False)
@@ -57,8 +57,7 @@ class Memory(nn.Module, ABC):
         """
         :param Retrieves the memory values for specified node indices.
 
-        :param Args:
-        :param    node_idxs: Indices of nodes whose memory values are to be retrieved.
+        :param   node_idxs: Indices of nodes whose memory values are to be retrieved.
 
         :param Returns:
         :param    A tensor containing the memory values of the specified nodes.
