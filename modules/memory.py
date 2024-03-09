@@ -33,8 +33,8 @@ class Memory(nn.Module, ABC):
 
     def __init_memory__(self):
         """
-        :param Initializes the memory and last update time to all zeroes.
-        :param This method is intended to be called at the start of each epoch to reset the memory.
+        Initializes the memory and last update time to all zeroes.
+        This method is intended to be called at the start of each epoch to reset the memory.
         """
         self.memory = nn.Parameter(torch.zeros(size=(self.n_nodes, self.memory_dim), device=self.device),
                                    requires_grad=False)
@@ -44,23 +44,23 @@ class Memory(nn.Module, ABC):
 
     def store_raw_messages(self, nodes, node_id_to_messages):
         """
-        :param Stores raw messages for specified nodes.
+        Stores raw messages for specified nodes.
 
-        :param Args:
-        :param    nodes: List of node indices for which messages are to be stored.
-        :param    node_id_to_messages: Dictionary mapping node indices to their messages.
+        Args:
+            nodes: List of node indices for which messages are to be stored.
+            node_id_to_messages: Dictionary mapping node indices to their messages.
         """
         for node in nodes:
             self.messages[node].extend(node_id_to_messages[node])
 
     def get_memory(self, node_idxs):
         """
-        :param Retrieves the memory values for specified node indices.
+        Retrieves the memory values for specified node indices.
 
         :param   node_idxs: Indices of nodes whose memory values are to be retrieved.
 
-        :param Returns:
-        :param    A tensor containing the memory values of the specified nodes.
+        Returns:
+        A tensor containing the memory values of the specified nodes.
         """
         return self.memory[node_idxs, :]
 
@@ -76,32 +76,31 @@ class Memory(nn.Module, ABC):
 
     def get_last_update(self, node_idxs):
         """
-        :param Retrieves the last update time for specified node indices.
+        Retrieves the last update time for specified node indices.
 
-        :param Args:
+
         :param    node_idxs: Indices of nodes whose last update times are to be retrieved.
 
         :param Returns:
-        :param   A tensor containing the last update times of the specified nodes.
+        A tensor containing the last update times of the specified nodes.
         """
         return self.last_update[node_idxs]
 
     def backup_memory(self):
         """
-        :param Creates a backup of the current memory and messages.
+        Creates a backup of the current memory and messages.
 
-        :param Returns:
-        :param     A tuple containing clones of the memory tensor, last update times, and messages.
+        :param: Returns:
+        A tuple containing clones of the memory tensor, last update times, and messages.
         """
         messages_clone = {k: [(msg[0].clone(), msg[1].clone()) for msg in v] for k, v in self.messages.items()}
         return self.memory.data.clone(), self.last_update.data.clone(), messages_clone
 
     def restore_memory(self, memory_backup):
         """
-        :param Restores memory and messages from a backup.
+        Restores memory and messages from a backup.
 
-        :param Args:
-        :param     memory_backup: A tuple containing memory tensor, last update times, and messages to be restored.
+        :param:    memory_backup: A tuple containing memory tensor, last update times, and messages to be restored.
         """
         self.memory.data, self.last_update.data = memory_backup[0].clone(), memory_backup[1].clone()
         self.messages = defaultdict(list)
@@ -110,8 +109,8 @@ class Memory(nn.Module, ABC):
 
     def detach_memory(self):
         """
-        :param Detaches memory from the current computation graph. Also detaches stored messages.
-        :param This is useful to prevent gradients from flowing back through the memory updates.
+        Detaches memory from the current computation graph. Also detaches stored messages.
+        This is useful to prevent gradients from flowing back through the memory updates.
         """
         self.memory.detach_()
         for k, v in self.messages.items():
@@ -119,9 +118,8 @@ class Memory(nn.Module, ABC):
 
     def clear_messages(self, nodes):
         """
-        :param Clears messages for specified nodes.
+        Clears messages for specified nodes.
 
-        :param Args:
         :param nodes: List of node indices for which messages are to be cleared.
         """
         for node in nodes:
@@ -130,11 +128,10 @@ class Memory(nn.Module, ABC):
     @abstractmethod
     def update_memory(self, node_idxs, new_values):
         """
-        :param Abstract method to update memory for given nodes with new values.
-        :param Subclasses must implement this method to define how memory updates are handled.
+        Abstract method to update memory for given nodes with new values.
+        Subclasses must implement this method to define how memory updates are handled.
 
-        :param Args:
-        :param     node_idxs (Tensor): Indices of nodes to update.
-        :param     new_values (Tensor): New values to update the memory with.
+        :param: node_idxs (Tensor): Indices of nodes to update.
+        :param: new_values (Tensor): New values to update the memory with.
         """
         pass
