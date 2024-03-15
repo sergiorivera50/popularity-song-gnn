@@ -73,3 +73,37 @@ class TemporalNeighborFinder:
                     edge_idxs[i, -actual_n_neighbors:] = source_edge_idxs[-actual_n_neighbors:]
 
         return neighbors, edge_idxs, edge_times
+
+
+def get_neighbor_finder(data, uniform, max_node_idx=None):
+  max_node_idx = max(data.sources.max(), data.destinations.max()) if max_node_idx is None else max_node_idx
+  adj_list = [[] for _ in range(max_node_idx + 1)]
+  for source, destination, edge_idx, timestamp in zip(data.sources, data.destinations,
+                                                      data.edge_idxs,
+                                                      data.timestamps):
+    adj_list[source].append((destination, edge_idx, timestamp))
+    adj_list[destination].append((source, edge_idx, timestamp))
+  return TemporalNeighborFinder(adj_list, uniform=uniform)
+
+
+class RandEdgeSampler(object):
+    def __init__(self, src_list, dst_list, seed=None):
+        self.seed = None
+        self.src_list = np.unique(src_list)
+        self.dst_list = np.unique(dst_list)
+
+        if seed is not None:
+          self.seed = seed
+          self.random_state = np.random.RandomState(self.seed)
+
+    def sample(self, size):
+        if self.seed is None:
+          src_index = np.random.randint(0, len(self.src_list), size)
+          dst_index = np.random.randint(0, len(self.dst_list), size)
+        else:
+          src_index = self.random_state.randint(0, len(self.src_list), size)
+          dst_index = self.random_state.randint(0, len(self.dst_list), size)
+        return self.src_list[src_index], self.dst_list[dst_index]
+
+    def reset_random_state(self):
+        self.random_state = np.random.RandomState(self.seed)

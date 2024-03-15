@@ -55,7 +55,7 @@ class TGN(nn.Module):
             self.memory_dimension = memory_dimension
             self.memory_update_at_start = memory_update_at_start
             raw_message_dimension = 2 * self.memory_dimension + self.n_edge_features + \
-                self.time_encoder.dimension
+                self.time_encoder.dim
             message_dimension = message_dimension if message_function != "identity" else raw_message_dimension
             self.memory = Memory(n_nodes=self.n_nodes,
                                  memory_dim=self.memory_dimension,
@@ -125,11 +125,10 @@ class TGN(nn.Module):
 
         # Compute the embeddings using the embedding module
         node_embedding = self.embedding_module.compute_embedding(memory=memory,
-                                                                 source_nodes=nodes,
+                                                                 src_nodes=nodes,
                                                                  timestamps=timestamps,
                                                                  n_layers=self.n_layers,
-                                                                 n_neighbors=n_neighbors,
-                                                                 time_diffs=time_diffs)
+                                                                 n_neighbors=n_neighbors)
 
         source_node_embedding = node_embedding[:n_samples]
         destination_node_embedding = node_embedding[n_samples: 2 * n_samples]

@@ -50,7 +50,14 @@ class SequenceMemoryUpdater(MemoryUpdater):
         :param unique_messages: Messages corresponding to each node ID.
         :param timestamps: Timestamps at which each message is received.
         """
-        raise NotImplementedError("Subclasses should implement this portion")
+        if len(unique_node_ids) <= 0:
+            return
+
+        assert (self.memory.get_last_update(unique_node_ids) <= timestamps).all().item(), "Trying to update memory to time in the past"
+        memory = self.memory.get_memory(unique_node_ids)
+        self.memory.last_update[unique_node_ids] = timestamps
+        updated_memory = self.memory_updater(unique_messages, memory)
+        self.memory.set_memory(unique_node_ids, updated_memory)
 
     def get_updated_memory(self, unique_node_ids, unique_messages, timestamps):
         """

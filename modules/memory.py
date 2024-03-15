@@ -1,10 +1,9 @@
 import torch
 from torch import nn
 from collections import defaultdict
-from abc import ABC, abstractmethod
 
 
-class Memory(nn.Module, ABC):
+class Memory(nn.Module):
     """
     Abstract base class representing a memory module for a neural network.
     This class defines a structure for storing and updating memory nodes with messages.
@@ -33,8 +32,8 @@ class Memory(nn.Module, ABC):
 
     def __init_memory__(self):
         """
-        :param Initializes the memory and last update time to all zeroes.
-        :param This method is intended to be called at the start of each epoch to reset the memory.
+        Initializes the memory and last update time to all zeroes.
+        This method is intended to be called at the start of each epoch to reset the memory.
         """
         self.memory = nn.Parameter(torch.zeros(size=(self.n_nodes, self.memory_dim), device=self.device),
                                    requires_grad=False)
@@ -126,15 +125,3 @@ class Memory(nn.Module, ABC):
         """
         for node in nodes:
             self.messages[node] = []
-
-    @abstractmethod
-    def update_memory(self, node_idxs, new_values):
-        """
-        :param Abstract method to update memory for given nodes with new values.
-        :param Subclasses must implement this method to define how memory updates are handled.
-
-        :param Args:
-        :param     node_idxs (Tensor): Indices of nodes to update.
-        :param     new_values (Tensor): New values to update the memory with.
-        """
-        pass
